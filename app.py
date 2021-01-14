@@ -8,7 +8,7 @@ app.config.from_object(Config)
 
 db.init_app(app)
 migrate = Migrate(app, db)
-
+app.app_context().push()
 
 #from views import *
 

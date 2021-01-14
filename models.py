@@ -70,3 +70,8 @@ class Order(db.Model):
     address = db.Column(db.String(), nullable=False)
     dishes = db.relationship("Dish", secondary=orders_dishes_association, back_populates="orders")
 
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    user = db.relationship("User", back_populates="orders")
+
+
+
