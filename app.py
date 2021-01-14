@@ -10,7 +10,8 @@ db.init_app(app)
 migrate = Migrate(app, db)
 app.app_context().push()
 
-#from views import *
+
+from views import *
 
 
 if __name__ == "__main__":
