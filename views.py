@@ -2,6 +2,7 @@ from flask import abort, flash, session, redirect, request, render_template
 
 from app import app, db
 from models import User, Dish, Category, Order
+from forms import LoginForm, RegistrationForm, OrderForm
 
 
 @app.errorhandler(404)
@@ -44,7 +45,6 @@ def add_to_cart(dish_id):
 def render_cart():
     # проверка авторизации пользователя, доработать в виде декоратора
     is_auth = False
-    dishes_sum = 0
     if session.get("user_id"):
         is_auth = True
     if not session.get("cart"):
@@ -67,24 +67,41 @@ def render_account():
     return render_template('account.html')
 
 
-@app.route('/auth/')
+@app.route('/auth/', methods=["GET", "POST"])
 def render_auth():
-    return render_template('auth.html')
+    if session.get("user_id"):
+        return redirect('/')
+    form = LoginForm()
+    if request.method == "POST":
+        if form.validate_on_submit():
+            user = db.session.query(User).filter(User.username == form.username.data).first()
+            if not user or user.password != form.password.data:
+                form.username.errors.append("Неверное имя или пароль")
+            else:
+                session["user_id"] = user.id
+                return redirect('/')
+    return render_template('auth.html', form=form)
 
 
-@app.route('/register/')
+@app.route('/register/', methods=["GET", "POST"])
 def route_register():
-    return render_template('register.html')
+    if session.get("user_id"):
+        return redirect('/')
+    form = RegistrationForm()
+    if request.method == "POST":
+
+    return render_template('register.html', form=form)
 
 
-@app.route('/login/')
-def route_login():
-    return render_template('login.html')
+#@app.route('/login/')
+#def route_login():
+#    return render_template('login.html')
 
 
 @app.route('/logout/')
 def route_logout():
-    return 'logout'
+    session.pop("user_id")
+    return redirect('/')
 
 
 @app.route('/ordered/')

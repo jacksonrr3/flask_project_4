@@ -15,8 +15,14 @@ class RegistrationForm(FlaskForm):
 
 class LoginForm(FlaskForm):
 
-    username = StringField("Email:", validators=[DataRequired()])
+    username = StringField("Email:", [InputRequired(message="Необходимо указать логин"),
+                                      Email(message="Необходимо указать email в качестве логина")])
 
     password = PasswordField("Пароль:", validators=[DataRequired()])
 
     submit = SubmitField('Войти')
+
+
+class OrderForm(FlaskForm):
+    username = StringField("Email:", [InputRequired(message="Необходимо указать логин"),
+                                      Email(message="Необходимо указать email в качестве логина")])
