@@ -2,7 +2,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash, check_password_hash
 
-
 db = SQLAlchemy()
 
 
@@ -31,9 +30,10 @@ class User(db.Model):
 
 
 orders_dishes_association = db.Table("orders_dishes",
-                                      db.Column("order_id", db.Integer, db.ForeignKey("orders.id")),
-                                      db.Column("dish_id", db.Integer, db.ForeignKey("dishes.id"))
-                                      )
+                                     db.Column("order_id", db.Integer, db.ForeignKey("orders.id")),
+                                     db.Column("dish_id", db.Integer, db.ForeignKey("dishes.id"))
+                                     )
+
 
 class Dish(db.Model):
     __tablename__ = 'dishes'
@@ -72,6 +72,3 @@ class Order(db.Model):
 
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     user = db.relationship("User", back_populates="orders")
-
-
-
