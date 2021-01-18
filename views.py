@@ -8,7 +8,7 @@ from forms import LoginForm, RegistrationForm, OrderForm
 @app.errorhandler(404)
 def render_not_found(error):
     """ 404 error custom handler """
-    return 'Ничего не нашлось! Вот неудача, отправляйтесь на главную!\n<a href="/">TINYSTEPS</a>'
+    return 'Ничего не нашлось! Вот неудача, отправляйтесь на главную!\n<a href="/">Сюда!</a>'
 
 
 @app.route('/')
@@ -74,8 +74,8 @@ def render_auth():
     form = LoginForm()
     if request.method == "POST":
         if form.validate_on_submit():
-            user = db.session.query(User).filter(User.username == form.username.data).first()
-            if not user or user.password != form.password.data:
+            user = db.session.query(User).filter(User.mail == form.username.data).first()
+            if not user or user.password_valid(form.password.data):
                 form.username.errors.append("Неверное имя или пароль")
             else:
                 session["user_id"] = user.id
@@ -88,8 +88,16 @@ def route_register():
     if session.get("user_id"):
         return redirect('/')
     form = RegistrationForm()
+    print("Form")
     if request.method == "POST":
-
+        print("POST")
+        if form.validate_on_submit():
+            print("validate_done")
+            user = User(mail=form.username.data, password=form.password.data)
+            db.session.add(user)
+            db.session.commit()
+            return 'registration_done'
+            #return render_template('registration_done.html', form=form)
     return render_template('register.html', form=form)
 
 

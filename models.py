@@ -9,8 +9,8 @@ class User(db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
-    mail = db.Column(db.String, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    mail = db.Column(db.String(), nullable=False)
+    password_hash = db.Column(db.String(128))
     orders = db.relationship("Order", back_populates="user")
 
     @property
