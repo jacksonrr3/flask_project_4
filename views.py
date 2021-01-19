@@ -17,11 +17,13 @@ def render_index():
     is_auth = False
     if session.get("user_id"):
         is_auth = True
-    if not session.get("cart"):
-        session["cart"] = []
-    dishes_amount = len(session.get("cart"))
+    cart = session.get("cart", [])
+
+    print(cart)
+
+    dishes_amount = len(cart)
     dishes_sum = 0
-    for dish_id in session.get("cart"):
+    for dish_id in cart:
         dishes_sum += db.session.query(Dish).get(dish_id).price
     categories = db.session.query(Category).all()
     return render_template('main.html',
@@ -35,9 +37,11 @@ def render_index():
 def add_to_cart(dish_id):
 
     dish = db.session.query(Dish).get_or_404(int(dish_id))
-    if not session.get("cart"):
-        session["cart"] = []
-    session["cart"].append(dish_id)
+    print(type(session.get("cart")))
+    cart = session.get("cart", [])
+    cart.append(dish_id)
+    session["cart"] = cart
+    print(session["cart"])
     return redirect('/cart/')
 
 
@@ -47,19 +51,21 @@ def render_cart():
     is_auth = False
     if session.get("user_id"):
         is_auth = True
-    if not session.get("cart"):
-        session["cart"] = []
-    dishes_amount = len(session.get("cart"))
+    print(session.get("cart"))
+    print(session)
+    cart = session.get("cart", [])
+    dishes_amount = len(cart)
     dishes_sum = 0
     dishes = []
-    for dish_id in session.get("cart"):
+    for dish_id in cart:
         dish = db.session.query(Dish).get(dish_id)  # добавить проверку валидности id
         dishes.append(dish)
         dishes_sum += dish.price
     return render_template('cart.html',
                            is_auth=is_auth,
                            dishes_amount=dishes_amount,
-                           dishes_sum=dishes_sum)
+                           dishes_sum=dishes_sum,
+                           dishes=dishes)
 
 
 @app.route('/account/')
@@ -109,6 +115,7 @@ def route_register():
 @app.route('/logout/')
 def route_logout():
     session.pop("user_id")
+    session.pop("cart")
     return redirect('/')
 
 
