@@ -9,8 +9,8 @@ class User(db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
-    mail = db.Column(db.String(), nullable=False)
-    password_hash = db.Column(db.String(128))
+    mail = db.Column(db.String(), nullable=False)   # Добавить unique=True
+    password_hash = db.Column(db.String(128))       # Добавить nullable=False
     orders = db.relationship("Order", back_populates="user")
 
     @property
@@ -54,7 +54,7 @@ class Category(db.Model):
     __tablename__ = 'categories'
 
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(), nullable=False)
+    title = db.Column(db.String(), nullable=False)     # добавить unique=True
     dishes = db.relationship('Dish', back_populates='category')
 
 

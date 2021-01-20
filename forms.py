@@ -22,5 +22,14 @@ class LoginForm(FlaskForm):
 
 
 class OrderForm(FlaskForm):
-    username = StringField("Электропочта:", [InputRequired(message="Необходимо указать логин"),
-                                             Email(message="Необходимо указать email в качестве логина")])
+    name = StringField("Ваше имя:", [InputRequired(message="Необходимо указать имя")])
+
+    address = StringField("Адрес:", [InputRequired(message="Необходимо указать имя")])
+
+    mail = StringField("Электропочта:", [InputRequired(message="Необходимо указать почту"),
+                                         Email(message="Необходимо указать email в качестве логина")])
+
+    phone = StringField("Ваш телефон",
+                        validators=[InputRequired(message="Необходимо указать телефон"),
+                                    Length(min=7, max=15, message="Номер должен быть от 7 до 15-ти цифр")])
+

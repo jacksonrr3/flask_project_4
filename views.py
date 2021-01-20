@@ -13,35 +13,52 @@ def render_not_found(error):
 
 @app.route('/')
 def render_index():
-    # проверка авторизации пользователя, доработать в виде декоратора
+    # проверка авторизации пользователя выгрузка данных из сессии для передачи в шаблон,
+    # доработать в виде декоратора
     is_auth = False
     if session.get("user_id"):
         is_auth = True
-    cart = session.get("cart", [])
-
-    print(cart)
-
-    dishes_amount = len(cart)
-    dishes_sum = 0
-    for dish_id in cart:
-        dishes_sum += db.session.query(Dish).get(dish_id).price
+    order_cart = session.get("cart", [])
+    order_sum = session.get("sum", 0)
     categories = db.session.query(Category).all()
     return render_template('main.html',
                            categories=categories,
                            is_auth=is_auth,
-                           dishes_amount=dishes_amount,
-                           dishes_sum=dishes_sum)
+                           order_cart=order_cart,
+                           order_sum=order_sum)
 
 
-@app.route('/addtocart/<int:dish_id>')
+@app.route('/categories/<category_id>')
+def render_category(category_id):
+    # проверка авторизации пользователя выгрузка данных из сессии для передачи в шаблон,
+    # доработать в виде декоратора
+    is_auth = False
+    if session.get("user_id"):
+        is_auth = True
+    order_cart = session.get("cart", [])
+    order_sum = session.get("sum", 0)
+    # запрос из базы объекта выбранной категори блюд для пережачи в шаблон
+    category = db.session.query(Category).get_or_404(category_id)
+    return render_template('category.html',
+                           is_auth=is_auth,
+                           order_cart=order_cart,
+                           order_sum=order_sum,
+                           category=category)
+
+
+@app.route('/add_to_cart/<int:dish_id>')
 def add_to_cart(dish_id):
-
     dish = db.session.query(Dish).get_or_404(int(dish_id))
-    print(type(session.get("cart")))
-    cart = session.get("cart", [])
-    cart.append(dish_id)
-    session["cart"] = cart
-    print(session["cart"])
+
+    # append dish to cart
+    order_cart = session.get("cart", [])
+    order_cart.append(dish_id)
+    session["cart"] = order_cart
+
+    # append dishes price to order_sum
+    order_sum = session.get("sum", 0)
+    order_sum += dish.price
+    session["sum"] = order_sum
     return redirect('/cart/')
 
 
@@ -51,20 +68,16 @@ def render_cart():
     is_auth = False
     if session.get("user_id"):
         is_auth = True
-    print(session.get("cart"))
-    print(session)
-    cart = session.get("cart", [])
-    dishes_amount = len(cart)
-    dishes_sum = 0
+    order_cart = session.get("cart", [])
+    order_sum = session.get("sum", 0)
     dishes = []
-    for dish_id in cart:
-        dish = db.session.query(Dish).get(dish_id)  # добавить проверку валидности id
+    for dish_id in order_cart:
+        dish = db.session.query(Dish).get_or_404(dish_id)  # добавить проверку валидности id
         dishes.append(dish)
-        dishes_sum += dish.price
     return render_template('cart.html',
                            is_auth=is_auth,
-                           dishes_amount=dishes_amount,
-                           dishes_sum=dishes_sum,
+                           order_cart=order_cart,
+                           order_sum=order_sum,
                            dishes=dishes)
 
 
@@ -85,6 +98,8 @@ def render_auth():
                 form.username.errors.append("Неверное имя или пароль")
             else:
                 session["user_id"] = user.id
+                session["cart"] = session.get("cart", [])
+                session["sum"] = session.get("sum", 0)
                 return redirect('/')
     return render_template('auth.html', form=form)
 
@@ -103,7 +118,6 @@ def route_register():
             db.session.add(user)
             db.session.commit()
             return 'registration_done'
-            #return render_template('registration_done.html', form=form)
     return render_template('register.html', form=form)
 
 
@@ -116,6 +130,7 @@ def route_register():
 def route_logout():
     session.pop("user_id")
     session.pop("cart")
+    session.pop("sum")
     return redirect('/')
 
 
