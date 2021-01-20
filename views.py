@@ -64,6 +64,10 @@ def add_to_cart(dish_id):
 
 @app.route('/cart/')
 def render_cart():
+    is_deleted = False
+    if session.get("is_deleted"):
+        is_deleted = True
+        session["is_deleted"] = False
     # проверка авторизации пользователя, доработать в виде декоратора
     is_auth = False
     if session.get("user_id"):
@@ -76,9 +80,27 @@ def render_cart():
         dishes.append(dish)
     return render_template('cart.html',
                            is_auth=is_auth,
+                           is_deleted=is_deleted,
                            order_cart=order_cart,
                            order_sum=order_sum,
                            dishes=dishes)
+
+
+@app.route('/delete_from_card/<int:dish_id>')
+def delete_from_card(dish_id):
+    dish = db.session.query(Dish).get_or_404(int(dish_id))
+
+    # delete dish from cart and sum
+    order_cart = session.get("cart", [])
+    order_sum = session.get("sum", 0)
+    if dish_id in order_cart:
+        order_cart.remove(dish_id)
+        order_sum -= dish.price
+    session["cart"] = order_cart
+    session["sum"] = order_sum
+
+    session["is_deleted"] = True
+    return redirect('/cart/')
 
 
 @app.route('/account/')
@@ -109,15 +131,17 @@ def route_register():
     if session.get("user_id"):
         return redirect('/')
     form = RegistrationForm()
-    print("Form")
     if request.method == "POST":
-        print("POST")
         if form.validate_on_submit():
-            print("validate_done")
-            user = User(mail=form.username.data, password=form.password.data)
-            db.session.add(user)
-            db.session.commit()
-            return 'registration_done'
+            if not form.password.data == form.confirm_password.data:
+                form.password.errors.append("Парль не подтвержден")
+            elif db.session.query(User).filter(User.mail == form.username.data).first():
+                form.username.errors.append("Пользователь с такой почтой уже существует")
+            else:
+                user = User(mail=form.username.data, password=form.password.data)
+                db.session.add(user)
+                db.session.commit()
+                return render_template('registration_done.html')
     return render_template('register.html', form=form)
 
 

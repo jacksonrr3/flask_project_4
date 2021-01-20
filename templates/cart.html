@@ -52,20 +52,21 @@
         </div>
 
 
-
       <div class="col-1"></div>
       <div class="col-7">
-        <h4 class="mb-3 col-7 mb-5">3 блюда в корзине</h4>
+        <h4 class="mb-3 col-7 mb-5">{{ dishes|length }} блюда в корзине</h4>
         <table class="table">
           <tbody>
+          {% for dish in dishes %}
             <tr>
-              <th scope="row">Ролл "Хомский"</th>
+              <th scope="row">{{ dish.title }}</th>
               <td></td>
               <td>1</td>
-              <td>315</td>
-              <td><a class="text-danger" href="#">Удалить</a></td>
+              <td>{{ dish.price }}</td>
+              <td><a class="text-danger" href="/delete_from_card/{{ dish.id }}">Удалить</a></td>
             </tr>
-            <tr>
+          {% endfor %}
+           <!-- <tr>
               <th scope="row">Бургер 404</th>
               <td></td>
               <td>1</td>
@@ -78,11 +79,11 @@
               <td>1</td>
               <td>310</td>
               <td><a class="text-danger" href="#">Удалить</a></td>
-            </tr>
+            </tr>-->
           </tbody>
         </table>
         <hr>
-        <p class="display-4 my-2 ">875 руб</p>
+        <p class="display-4 my-2 ">{{ order_sum }} руб</p>
       </div>
     </div>
 {% endblock %}

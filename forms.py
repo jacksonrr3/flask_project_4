@@ -4,15 +4,18 @@ from wtforms.validators import InputRequired, DataRequired, Length, Email
 
 
 class RegistrationForm(FlaskForm):
+
     username = StringField("Электропочта:", [InputRequired(message="Необходимо указать логин"),
                                              Email(message="Необходимо указать email в качестве логина")])
-    password = PasswordField("Пароль:", validators=[InputRequired(message="Необходимо задать пароль"),
-                                                    Length(min=5, message="Пароль не менее 5 символов")])
+    password = PasswordField("Пароль:", [InputRequired(message="Необходимо задать пароль"),
+                                         Length(min=5, message="Пароль не менее 5 символов")])
+    confirm_password = PasswordField("Повторите пароль", [InputRequired(message="Необходимо повторить пароль")])
 
     submit = SubmitField('Зарегистрироваться')
 
 
 class LoginForm(FlaskForm):
+
     username = StringField("Электропочта:", [InputRequired(message="Необходимо указать логин"),
                                              Email(message="Необходимо указать email в качестве логина")])
 
@@ -22,6 +25,7 @@ class LoginForm(FlaskForm):
 
 
 class OrderForm(FlaskForm):
+
     name = StringField("Ваше имя:", [InputRequired(message="Необходимо указать имя")])
 
     address = StringField("Адрес:", [InputRequired(message="Необходимо указать имя")])
