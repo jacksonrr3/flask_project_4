@@ -37,3 +37,4 @@ class OrderForm(FlaskForm):
                         validators=[InputRequired(message="Необходимо указать телефон"),
                                     Length(min=7, max=15, message="Номер должен быть от 7 до 15-ти цифр")])
 
+    submit = SubmitField('Оформить заказ')

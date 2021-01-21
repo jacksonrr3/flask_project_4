@@ -1,3 +1,5 @@
+import datetime
+
 from flask import abort, flash, session, redirect, request, render_template
 
 from app import app, db
@@ -62,7 +64,7 @@ def add_to_cart(dish_id):
     return redirect('/cart/')
 
 
-@app.route('/cart/')
+@app.route('/cart/', methods=["GET", "POST"])
 def render_cart():
     is_deleted = False
     if session.get("is_deleted"):
@@ -70,15 +72,39 @@ def render_cart():
         session["is_deleted"] = False
     # проверка авторизации пользователя, доработать в виде декоратора
     is_auth = False
-    if session.get("user_id"):
+    user_id = session.get("user_id")
+    if user_id:
         is_auth = True
     order_cart = session.get("cart", [])
     order_sum = session.get("sum", 0)
+    form = OrderForm()
+
     dishes = []
     for dish_id in order_cart:
         dish = db.session.query(Dish).get_or_404(dish_id)  # добавить проверку валидности id
         dishes.append(dish)
+
+    if request.method == "POST":
+        if form.validate_on_submit():
+            mail = form.mail.data
+            phone = form.phone.data
+            address = form.address.data
+            #проверка наличия и совпадения id и mail с данными из базы
+            user = db.session.query(User).filter(db.and_(User.mail == mail, User.id == user_id)).first()
+            if user:
+                data = datetime.datetime.now()
+                order = Order(data=data, total=order_sum, status=True,
+                              email=mail, phone=phone, address=address, dishes=dishes, user=user, user_id=user.id)
+                db.session.add(order)
+                db.session.commit()
+                session["cart"] = []
+                session["sum"] = 0
+                return redirect('/ordered/')
+            else:
+                # если пользователь не найден, то выводим ошибку
+                form.mail.errors.append("введите корректную почту")
     return render_template('cart.html',
+                           form=form,
                            is_auth=is_auth,
                            is_deleted=is_deleted,
                            order_cart=order_cart,
@@ -105,7 +131,20 @@ def delete_from_card(dish_id):
 
 @app.route('/account/')
 def render_account():
-    return render_template('account.html')
+    # провекра авторизации пользователя, доработать в виде декоратора
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect('/')
+    order_cart = session.get("cart", [])
+    order_sum = session.get("sum", 0)
+    is_auth = True
+    user = db.session.query(User).get_or_404(user_id)
+    # добавить отображение регистрационных данных пользователя
+    return render_template('account.html',
+                           is_auth=is_auth,
+                           order_cart=order_cart,
+                           order_sum=order_sum,
+                           orders=user.orders)
 
 
 @app.route('/auth/', methods=["GET", "POST"])
@@ -145,11 +184,6 @@ def route_register():
     return render_template('register.html', form=form)
 
 
-#@app.route('/login/')
-#def route_login():
-#    return render_template('login.html')
-
-
 @app.route('/logout/')
 def route_logout():
     session.pop("user_id")
@@ -160,6 +194,9 @@ def route_logout():
 
 @app.route('/ordered/')
 def route_ordered():
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect('/')
     return render_template('ordered.html')
 
 
