@@ -155,8 +155,10 @@ def render_auth():
     if request.method == "POST":
         if form.validate_on_submit():
             user = db.session.query(User).filter(User.mail == form.username.data).first()
-            if not user or user.password_valid(form.password.data):
-                form.username.errors.append("Неверное имя или пароль")
+            if not user:
+                form.username.errors.append("Неверное имя")
+            elif not user.password_valid(form.password.data):
+                form.username.errors.append("Неверный пароль")
             else:
                 session["user_id"] = user.id
                 session["cart"] = session.get("cart", [])
@@ -173,7 +175,7 @@ def route_register():
     if request.method == "POST":
         if form.validate_on_submit():
             if not form.password.data == form.confirm_password.data:
-                form.password.errors.append("Парль не подтвержден")
+                form.password.errors.append("Пароль не подтвержден")
             elif db.session.query(User).filter(User.mail == form.username.data).first():
                 form.username.errors.append("Пользователь с такой почтой уже существует")
             else:
